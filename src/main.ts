@@ -78,26 +78,33 @@ document.addEventListener('keydown', (e) => {
       });
       break;
     case 'c':
-      // Simple test: equilateral triangle with one square-wave driven segment
-      // Side length s, active segment alternates between 1.5s and 0.75s every 2 seconds
+      // Simple 3-node fish that glides when given initial velocity
+      // Head on left, two tail nodes on right
       import('./types').then(({ SegmentType }) => {
-        const id = world.nextCreatureId++;
+        const id = 99;  // Fixed ID for debug logging
+        world.nextCreatureId = Math.max(world.nextCreatureId, 100);
         const cx = 0, cy = 0;
-        const s = 40; // side length
-        const h = s * Math.sqrt(3) / 2; // height of equilateral triangle
 
-        // Equilateral triangle: node 0 at top, nodes 1,2 at bottom
-        const n0 = { id: 0, gene: { type: SegmentType.Neutral, size: 5, links: [], efficiency: 0.5 }, x: cx, y: cy - h * 2/3, vx: 0, vy: 0 };
-        const n1 = { id: 1, gene: { type: SegmentType.Neutral, size: 5, links: [], efficiency: 0.5 }, x: cx - s/2, y: cy + h * 1/3, vx: 0, vy: 0 };
-        const n2 = { id: 2, gene: { type: SegmentType.Neutral, size: 5, links: [], efficiency: 0.5 }, x: cx + s/2, y: cy + h * 1/3, vx: 0, vy: 0 };
+        // Fish starting at rest
+        // Head on left, tail nodes spread at ~90 degrees total (45 each side)
+        const legLength = 60;
+        const halfAngle = 45 * Math.PI / 180;  // 45 degrees each side = 90 degree spread
+        const tailX = cx + legLength * Math.cos(halfAngle);
+        const tailY = legLength * Math.sin(halfAngle);
+
+        const n0 = { id: 0, gene: { type: SegmentType.Neutral, size: 12, links: [], efficiency: 0.5 }, x: cx, y: cy, vx: 0, vy: 0 };
+        const n1 = { id: 1, gene: { type: SegmentType.Neutral, size: 4, links: [], efficiency: 0.5 }, x: tailX, y: -tailY, vx: 0, vy: 0 };
+        const n2 = { id: 2, gene: { type: SegmentType.Neutral, size: 4, links: [], efficiency: 0.5 }, x: tailX, y: tailY, vx: 0, vy: 0 };
 
         const nodes = [n0, n1, n2];
 
-        // Links - softer springs so transitions are slower and drag has time to act
+        // Initial tail spread for 160 degrees
+        const initialTailSpread = 2 * tailY;
+
         const links = [
-          { nodeA: 0, nodeB: 1, restLength: s, stiffness: 0.5, actuationAmp: 0, actuationFreq: 0, actuationPhase: 0 },
-          { nodeA: 0, nodeB: 2, restLength: s, stiffness: 0.5, actuationAmp: 0, actuationFreq: 0, actuationPhase: 0 },
-          { nodeA: 1, nodeB: 2, restLength: s, stiffness: 0.5, actuationAmp: 0, actuationFreq: 0, actuationPhase: 0 }, // This one we'll drive
+          { nodeA: 0, nodeB: 1, restLength: legLength, stiffness: 0.5, actuationAmp: 0, actuationFreq: 0, actuationPhase: 0 },
+          { nodeA: 0, nodeB: 2, restLength: legLength, stiffness: 0.5, actuationAmp: 0, actuationFreq: 0, actuationPhase: 0 },
+          { nodeA: 1, nodeB: 2, restLength: initialTailSpread, stiffness: 0.5, actuationAmp: 0, actuationFreq: 0, actuationPhase: 0 },
         ];
 
         const creature = {
@@ -111,25 +118,66 @@ document.addEventListener('keydown', (e) => {
         };
         world.creatures.push(creature);
 
-        // Square wave driver: toggle between 1.5s and 0.75s every 2 seconds
-        const baseLength = s;
-        let expanded = true;
-        const activeLink = creature.links[2];
-        activeLink.restLength = baseLength * 1.5; // Start expanded
+        // Swimming stroke - a LOOP in configuration space
+        // Two degrees of freedom: tail spread (link 2) and leg length (links 0,1)
+        const tailLink = creature.links[2];  // Between tail nodes
+        const legLinkA = creature.links[0];  // Head to tail-top
+        const legLinkB = creature.links[1];  // Head to tail-bottom
 
-        setInterval(() => {
-          expanded = !expanded;
-          activeLink.restLength = expanded ? baseLength * 1.5 : baseLength * 0.75;
-          console.log(`Active segment target: ${activeLink.restLength.toFixed(1)} (${expanded ? 'expanded' : 'contracted'})`);
-        }, 2000);
+        // Swim cycle parameters
+        // Big: 3x longer than small
+        // Small: legs=30, tail=25
+        // Big: legs=90, tail=75
+        const legsShort = 30;
+        const legsLong = 180;   // 3x longer
+        const tailClosed = 25;
+        const tailOpen = 180;   // 3x wider
 
-        // Log node 0 position periodically
+        const stepTime = 1500;  // ms per phase - very slow
+
+        function swimCycle() {
+          // Phase 1: Close tail (legs still long)
+          tailLink.restLength = tailClosed;
+          console.log('1. CLOSE TAIL (legs long)');
+
+          setTimeout(() => {
+            // Phase 2: Shorten legs (tail still closed)
+            legLinkA.restLength = legsShort;
+            legLinkB.restLength = legsShort;
+            console.log('2. SHORTEN LEGS (tail closed)');
+
+            setTimeout(() => {
+              // Phase 3: Open tail (legs still short)
+              tailLink.restLength = tailOpen;
+              legLinkA.restLength = legsShort * 3;
+              legLinkB.restLength = legsShort * 3;
+              console.log('3. OPEN TAIL (legs short)');
+
+              setTimeout(() => {
+                // Phase 4: Lengthen legs (tail still open)
+                legLinkA.restLength = legsLong;
+                legLinkB.restLength = legsLong;
+                console.log('4. LENGTHEN LEGS (tail open)');
+
+                setTimeout(() => {
+                  // Repeat the cycle
+                  swimCycle();
+                }, stepTime);
+              }, stepTime);
+            }, stepTime);
+          }, stepTime);
+        }
+
+        // Initialize to starting config and begin
+        tailLink.restLength = tailOpen;
+        legLinkA.restLength = legsLong;
+        legLinkB.restLength = legsLong;
+        setTimeout(swimCycle, 500);
+
+        // Log head position
         setInterval(() => {
-          const n0 = creature.nodes[0];
-          const n1 = creature.nodes[1];
-          const n2 = creature.nodes[2];
-          const bottomLength = Math.sqrt((n2.x - n1.x) ** 2 + (n2.y - n1.y) ** 2);
-          console.log(`Node0 pos: (${n0.x.toFixed(1)}, ${n0.y.toFixed(1)}) vel: (${n0.vx.toFixed(3)}, ${n0.vy.toFixed(3)}) bottom: ${bottomLength.toFixed(1)}`);
+          const head = creature.nodes[0];
+          console.log(`Head pos: (${head.x.toFixed(1)}, ${head.y.toFixed(1)}) vel: (${head.vx.toFixed(3)}, ${head.vy.toFixed(3)})`);
         }, 500);
       });
       break;

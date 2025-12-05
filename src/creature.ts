@@ -74,15 +74,16 @@ export function createCreature(
           const dy = nodeB.y - nodeA.y;
           const restLength = Math.sqrt(dx * dx + dy * dy);
 
+          // Only ~20% of links have actuation
+          const hasActuation = Math.random() < 0.2;
           links.push({
             nodeA: i,
             nodeB: targetIdx,
             restLength,
             stiffness: 2.0,
-            // Random actuation params for each link
-            actuationAmp: 0.2 + Math.random() * 0.3,  // 20-50% length change
-            actuationFreq: 1.0 + Math.random() * 2,   // 1-3 Hz
-            actuationPhase: Math.random() * Math.PI * 2,
+            actuationAmp: hasActuation ? 0.2 + Math.random() * 0.3 : 0,
+            actuationFreq: hasActuation ? 1.0 + Math.random() * 2 : 0,
+            actuationPhase: hasActuation ? Math.random() * Math.PI * 2 : 0,
           });
         }
       }
