@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { World, Creature, Node, Food, SegmentType } from './types';
+import { toroidalDelta } from './physics';
 
 // Colors for node types
 const NODE_COLORS: Record<SegmentType, number> = {
@@ -129,9 +130,11 @@ export class Renderer {
           this.linkMeshes.set(key, line);
         }
 
+        // Use toroidal delta to draw link via shortest path
+        const { dx, dy } = toroidalDelta(nodeA.x, nodeA.y, nodeB.x, nodeB.y, this.width, this.height);
         const positions = new Float32Array([
           nodeA.x, nodeA.y, -1,
-          nodeB.x, nodeB.y, -1,
+          nodeA.x + dx, nodeA.y + dy, -1,
         ]);
         line.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         line.geometry.attributes.position.needsUpdate = true;

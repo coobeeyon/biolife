@@ -3,15 +3,15 @@ import { CollisionSystem } from './collision';
 import { Renderer } from './renderer';
 
 // World configuration
-const WORLD_WIDTH = 800;
-const WORLD_HEIGHT = 600;
+const WORLD_WIDTH = 2400;
+const WORLD_HEIGHT = 1800;
 
 // Create world
 const world = createWorld({
   width: WORLD_WIDTH,
   height: WORLD_HEIGHT,
   viscosity: 0.08,
-  insolation: 0.005,  // Was 0.03
+  insolation: 0.0015,  // Half of 0.005
   foodSpawnRate: 0.02,  // Was 0.15 - reduced to ~1 food per second at 60fps
   foodEnergy: 15,       // Was 25
   matingEnergyCost: 80,

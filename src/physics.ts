@@ -13,9 +13,9 @@ function applyNodeDrag(node: Node, viscosity: number): void {
 // The link is a RIGID BODY with both translation and rotation
 // Anisotropic: perpendicular motion has high drag, parallel motion has low drag
 let dragDebugCounter = 0;
-function applyLinkDrag(nodeA: Node, nodeB: Node, link: Link, viscosity: number, creatureId?: number): void {
-  const dx = nodeB.x - nodeA.x;
-  const dy = nodeB.y - nodeA.y;
+function applyLinkDrag(nodeA: Node, nodeB: Node, link: Link, viscosity: number, width: number, height: number, creatureId?: number): void {
+  // Use toroidal distance
+  const { dx, dy } = toroidalDelta(nodeA.x, nodeA.y, nodeB.x, nodeB.y, width, height);
   const length = Math.sqrt(dx * dx + dy * dy) || 0.001;
 
   // Link direction (unit vector) - parallel to link
@@ -99,7 +99,8 @@ function getActuationCost(creature: Creature): number {
 }
 
 // Apply spring forces between linked nodes, with oscillating rest length
-function applyLinkForces(creature: Creature, tick: number, dt: number): void {
+// World dimensions are passed to handle toroidal wrapping
+function applyLinkForces(creature: Creature, tick: number, dt: number, width: number, height: number): void {
   const efficiency = getEnergyEfficiency(creature);
 
   for (const link of creature.links) {
@@ -108,8 +109,8 @@ function applyLinkForces(creature: Creature, tick: number, dt: number): void {
 
     if (!nodeA || !nodeB) continue;
 
-    const dx = nodeB.x - nodeA.x;
-    const dy = nodeB.y - nodeA.y;
+    // Use toroidal distance for links that may cross boundaries
+    const { dx, dy } = toroidalDelta(nodeA.x, nodeA.y, nodeB.x, nodeB.y, width, height);
     const dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
 
     // Calculate target length (rest length + actuation)
@@ -158,14 +159,14 @@ function applyLinkForces(creature: Creature, tick: number, dt: number): void {
 }
 
 // Prevent nodes of the same creature from overlapping
-function applySelfCollision(creature: Creature): void {
+function applySelfCollision(creature: Creature, width: number, height: number): void {
   for (let i = 0; i < creature.nodes.length; i++) {
     for (let j = i + 1; j < creature.nodes.length; j++) {
       const nodeA = creature.nodes[i];
       const nodeB = creature.nodes[j];
 
-      const dx = nodeB.x - nodeA.x;
-      const dy = nodeB.y - nodeA.y;
+      // Use toroidal distance
+      const { dx, dy } = toroidalDelta(nodeA.x, nodeA.y, nodeB.x, nodeB.y, width, height);
       const dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
       const minDist = nodeA.gene.size + nodeB.gene.size;
 
@@ -196,33 +197,45 @@ function integrate(creature: Creature, dt: number): void {
   }
 }
 
-// Keep creatures within world bounds
-function applyBoundary(creature: Creature, width: number, height: number): void {
+// Wrap position to toroidal world
+export function wrapPosition(x: number, y: number, width: number, height: number): { x: number; y: number } {
   const hw = width / 2;
   const hh = height / 2;
 
+  // Wrap x
+  let wx = x;
+  if (wx < -hw) wx += width;
+  else if (wx > hw) wx -= width;
+
+  // Wrap y
+  let wy = y;
+  if (wy < -hh) wy += height;
+  else if (wy > hh) wy -= height;
+
+  return { x: wx, y: wy };
+}
+
+// Get shortest vector between two points in toroidal space
+export function toroidalDelta(x1: number, y1: number, x2: number, y2: number, width: number, height: number): { dx: number; dy: number } {
+  let dx = x2 - x1;
+  let dy = y2 - y1;
+
+  // Wrap to shortest path
+  if (dx > width / 2) dx -= width;
+  else if (dx < -width / 2) dx += width;
+
+  if (dy > height / 2) dy -= height;
+  else if (dy < -height / 2) dy += height;
+
+  return { dx, dy };
+}
+
+// Apply toroidal wrapping to creature nodes
+function applyToroidalWrap(creature: Creature, width: number, height: number): void {
   for (const node of creature.nodes) {
-    const r = node.gene.size;
-
-    // Soft boundary - push back
-    const boundaryForce = 0.5;
-
-    if (node.x - r < -hw) {
-      node.vx += boundaryForce;
-      node.x = -hw + r;
-    }
-    if (node.x + r > hw) {
-      node.vx -= boundaryForce;
-      node.x = hw - r;
-    }
-    if (node.y - r < -hh) {
-      node.vy += boundaryForce;
-      node.y = -hh + r;
-    }
-    if (node.y + r > hh) {
-      node.vy -= boundaryForce;
-      node.y = hh - r;
-    }
+    const wrapped = wrapPosition(node.x, node.y, width, height);
+    node.x = wrapped.x;
+    node.y = wrapped.y;
   }
 }
 
@@ -235,15 +248,15 @@ export function updateCreaturePhysics(
 ): void {
   if (!creature.alive) return;
 
-  applyLinkForces(creature, world.tick, dt);
-  applySelfCollision(creature);
+  applyLinkForces(creature, world.tick, dt, world.config.width, world.config.height);
+  applySelfCollision(creature, world.config.width, world.config.height);
 
   // Apply drag to links (anisotropic - creates swimming thrust)
   for (const link of creature.links) {
     const nodeA = creature.nodes[link.nodeA];
     const nodeB = creature.nodes[link.nodeB];
     if (nodeA && nodeB) {
-      applyLinkDrag(nodeA, nodeB, link, world.config.viscosity, creature.id);
+      applyLinkDrag(nodeA, nodeB, link, world.config.viscosity, world.config.width, world.config.height, creature.id);
     }
   }
 
@@ -268,7 +281,7 @@ export function updateCreaturePhysics(
   }
 
   integrate(creature, dt);
-  applyBoundary(creature, world.config.width, world.config.height);
+  applyToroidalWrap(creature, world.config.width, world.config.height);
 }
 
 // Update all physics in the world

@@ -129,32 +129,14 @@ function reproduce(world: World, parentA: Creature, parentB: Creature): Creature
   return child;
 }
 
-// Apply solar energy generation - fixed total energy divided among all solar nodes
+// Apply solar energy generation - each solar node generates based on its area
 function applySolarEnergy(world: World): void {
-  // First, count total solar area
-  let totalSolarArea = 0;
-  for (const creature of world.creatures) {
-    if (!creature.alive) continue;
-    for (const node of creature.nodes) {
-      if (node.gene.type === SegmentType.Solar) {
-        totalSolarArea += node.gene.size * node.gene.size; // Area = size^2
-      }
-    }
-  }
-
-  if (totalSolarArea === 0) return;
-
-  // Fixed total solar energy per tick, divided proportionally
-  const totalSolarEnergy = world.config.insolation * 100; // Total energy available from sun
-
-  // Distribute to each solar node based on its share of total area
   for (const creature of world.creatures) {
     if (!creature.alive) continue;
     for (const node of creature.nodes) {
       if (node.gene.type === SegmentType.Solar) {
         const nodeArea = node.gene.size * node.gene.size;
-        const share = nodeArea / totalSolarArea;
-        creature.energy += totalSolarEnergy * share;
+        creature.energy += nodeArea * world.config.insolation;
       }
     }
   }
@@ -235,8 +217,29 @@ export function step(world: World, collisionSystem: CollisionSystem, dt: number 
   // Age creatures and process deaths
   for (const creature of world.creatures) {
     creature.age++;
-    // Small passive energy drain
-    creature.energy -= 0.01;
+    // Energy drain proportional to node area, varies by type
+    // Green (solar) = 1x base cost (reference)
+    // Red (sucker) = 4x cost (expensive predator organs)
+    // Gray (neutral) = 0.25x cost (cheap structure)
+    // Magenta (mating) = 0.25x cost (cheap reproductive organs)
+    for (const node of creature.nodes) {
+      const nodeArea = node.gene.size * node.gene.size;
+      const baseCost = 0.001;
+      let costMultiplier = 1.0;
+      switch (node.gene.type) {
+        case SegmentType.Solar:
+          costMultiplier = 1.0;
+          break;
+        case SegmentType.Sucker:
+          costMultiplier = 4.0;
+          break;
+        case SegmentType.Neutral:
+        case SegmentType.Mating:
+          costMultiplier = 0.25;
+          break;
+      }
+      creature.energy -= nodeArea * baseCost * costMultiplier;
+    }
   }
 
   // Asexual division for creatures with excess energy

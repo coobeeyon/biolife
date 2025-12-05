@@ -176,18 +176,18 @@ export function processCollisions(world: World, pairs: CollisionPair[]): void {
 
       if (!nodeA || !nodeB) continue;
 
-      // Sucker drains energy from other creature (50% transfer efficiency - energy is lost)
+      // Sucker drains energy from other creature (80% transfer efficiency, 6x rate)
       if (nodeA.gene.type === SegmentType.Sucker) {
         const efficiency = nodeA.gene.efficiency ?? 0.5;
-        const drain = Math.min(creatureB.energy, efficiency * 0.5);
-        creatureA.energy += drain * 0.5; // Only 50% transferred
+        const drain = Math.min(creatureB.energy, efficiency * 3.0);  // 6x rate
+        creatureA.energy += drain * 0.8;  // 80% transferred
         creatureB.energy -= drain;
       }
 
       if (nodeB.gene.type === SegmentType.Sucker) {
         const efficiency = nodeB.gene.efficiency ?? 0.5;
-        const drain = Math.min(creatureA.energy, efficiency * 0.5);
-        creatureB.energy += drain * 0.5; // Only 50% transferred
+        const drain = Math.min(creatureA.energy, efficiency * 3.0);  // 6x rate
+        creatureB.energy += drain * 0.8;  // 80% transferred
         creatureA.energy -= drain;
       }
 
