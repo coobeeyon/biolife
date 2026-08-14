@@ -17,8 +17,9 @@
       "item_type": "task",
       "status": "open",
       "priority": 1,
+      "claimed_by": "Mike Daum",
       "created_at": "2026-08-14T16:54:04.792749842Z",
-      "updated_at": "2026-08-14T16:54:04.792749842Z"
+      "updated_at": "2026-08-14T17:00:00.628915582Z"
     },
     "lb-oe6z": {
       "id": "lb-oe6z",
