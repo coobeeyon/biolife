@@ -61,3 +61,12 @@ Key parameters in `main.ts`:
 npm run build
 npm run preview
 ```
+
+## Physics Tests
+
+```bash
+npm test
+```
+
+The headless physics suite includes passive rotational damping, symmetry,
+and reciprocal-stroke controls. It does not require WebGL or a browser.
