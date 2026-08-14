@@ -1,93 +1,15 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { updateCreaturePhysics } = require('../node_modules/.cache/biolife-tests/physics.js');
-
-const WORLD_SIZE = 1_000_000;
-
-function gene(size) {
-  return { type: 'neutral', size, links: [], efficiency: 0.5 };
-}
-
-function node(id, size, x, y, vx = 0, vy = 0) {
-  return { id, gene: gene(size), x, y, vx, vy };
-}
-
-function link(nodeA, nodeB, restLength, stiffness = 2) {
-  return {
-    nodeA,
-    nodeB,
-    restLength,
-    stiffness,
-    actuationAmp: 0,
-    actuationFreq: 0,
-    actuationPhase: 0,
-  };
-}
-
-function creature(nodes, links) {
-  return {
-    id: 1,
-    nodes,
-    links,
-    genome: nodes.map((item) => item.gene),
-    energy: 100,
-    age: 0,
-    alive: true,
-  };
-}
-
-function world(subject, viscosity = 0.08) {
-  return {
-    config: {
-      width: WORLD_SIZE,
-      height: WORLD_SIZE,
-      viscosity,
-    },
-    creatures: [subject],
-    food: [],
-    tick: 0,
-  };
-}
-
-function step(subject, environment, count, beforeStep) {
-  for (let index = 0; index < count; index++) {
-    if (beforeStep) beforeStep(environment.tick);
-    environment.tick++;
-    updateCreaturePhysics(subject, environment, 1);
-  }
-}
-
-function centerOfMass(subject) {
-  let totalMass = 0;
-  let x = 0;
-  let y = 0;
-
-  for (const item of subject.nodes) {
-    const mass = item.gene.size ** 2;
-    totalMass += mass;
-    x += item.x * mass;
-    y += item.y * mass;
-  }
-
-  return { x: x / totalMass, y: y / totalMass };
-}
-
-function angularVelocity(subject, subjectLink) {
-  const a = subject.nodes[subjectLink.nodeA];
-  const b = subject.nodes[subjectLink.nodeB];
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const length = Math.hypot(dx, dy);
-  const perpendicularX = -dy / length;
-  const perpendicularY = dx / length;
-  const relativeVx = b.vx - a.vx;
-  const relativeVy = b.vy - a.vy;
-
-  return (
-    relativeVx * perpendicularX + relativeVy * perpendicularY
-  ) / length;
-}
+const {
+  angularVelocity,
+  centerOfMass,
+  creature,
+  link,
+  node,
+  step,
+  world,
+} = require('./physics-harness.cjs');
 
 test('passive rotational drag monotonically removes angular velocity', () => {
   const nodes = [
@@ -160,9 +82,9 @@ test('a reciprocal one-degree-of-freedom stroke has negligible net travel', () =
     actuator.restLength = 60 + 20 * Math.sin((2 * Math.PI * tick) / period);
   };
 
-  step(subject, environment, period * 2, driveActuator);
+  step(subject, environment, period * 2, { beforeStep: driveActuator });
   const initialCenter = centerOfMass(subject);
-  step(subject, environment, period, driveActuator);
+  step(subject, environment, period, { beforeStep: driveActuator });
 
   const finalCenter = centerOfMass(subject);
   const displacement = Math.hypot(

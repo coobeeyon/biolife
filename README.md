@@ -69,4 +69,6 @@ npm test
 ```
 
 The headless physics suite includes passive rotational damping, symmetry,
-and reciprocal-stroke controls. It does not require WebGL or a browser.
+and reciprocal-stroke controls, plus a deterministic breaststroke swimmer
+that checks directed travel, shape closure, reversed strokes, bounded drift,
+and timestep convergence. It does not require WebGL or a browser.
