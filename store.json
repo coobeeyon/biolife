@@ -1,5 +1,15 @@
 {
   "items": {
+    "lb-dwgb": {
+      "id": "lb-dwgb",
+      "title": "Implement canonical breaststroke locomotion constraint",
+      "description": "Goal: prove positive, directed propulsion with a deterministic pre-programmed swimmer. Context: build on the headless harness from lb-oe6z and the acceptance criteria in .trapper_keeper/pages/biolife-simulation.md. Requirements: define a symmetric two-degree-of-freedom breaststroke shape loop driven entirely by simulation time; assert body-relative shape closure, positive forward displacement, bounded lateral drift/yaw, repeatable per-cycle travel, reversed travel for a reversed loop, and timestep convergence. Acceptance: the canonical swimmer passes deterministically under the corrected drag model and the command is documented. Out of scope: genome encoding, random creatures, rendering/UI, and ecosystem balance.",
+      "item_type": "task",
+      "status": "open",
+      "priority": 1,
+      "created_at": "2026-08-14T16:54:04.792749842Z",
+      "updated_at": "2026-08-14T16:54:04.792749842Z"
+    },
     "lb-oe6z": {
       "id": "lb-oe6z",
       "title": "Add deterministic physics harness and negative controls",
@@ -24,6 +34,11 @@
   "deps": [
     {
       "from_id": "lb-oe6z",
+      "to_id": "lb-q2d7",
+      "dep_type": "parent"
+    },
+    {
+      "from_id": "lb-dwgb",
       "to_id": "lb-q2d7",
       "dep_type": "parent"
     }
