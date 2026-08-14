@@ -25,11 +25,10 @@
       "title": "Add deterministic physics harness and negative controls",
       "description": "Goal: make basic drag correctness executable and reproducible. Context: src/physics.ts applies forces directly and rotational endpoint signs currently amplify angular velocity; src/main.ts contains non-deterministic console-based experiments. Requirements: add a headless test command with no browser/renderer dependency; test that a passive rotating link loses angular velocity monotonically, a symmetric rest state stays symmetric, and a reciprocal one-degree-of-freedom stroke has negligible net displacement; correct the minimal physics defects needed for these tests; remove obsolete physics debug logging if safely covered. Acceptance: npm test (or the added documented test command), npm run build, and the deterministic controls pass repeatedly. Out of scope: canonical breaststroke positive case, gait inheritance, ecosystem tuning, and renderer changes.",
       "item_type": "task",
-      "status": "open",
+      "status": "closed",
       "priority": 1,
-      "claimed_by": "Mike Daum",
       "created_at": "2026-08-14T16:53:58.695940013Z",
-      "updated_at": "2026-08-14T16:54:29.218403846Z"
+      "updated_at": "2026-08-14T16:59:50.891861049Z"
     },
     "lb-q2d7": {
       "id": "lb-q2d7",
