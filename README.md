@@ -11,6 +11,16 @@ npm run dev
 
 Open http://localhost:5173 in your browser.
 
+To watch the validated swimmer by itself, open:
+
+```text
+http://localhost:5173/?demo=breaststroke
+```
+
+The view is zoomed in, plays the validated fixed-step simulation at 4x wall
+clock speed, and reports the current stroke phase and forward distance. Add
+`&reverse=1` to run the same shape loop backward.
+
 ## Overview
 
 Creatures are built from:

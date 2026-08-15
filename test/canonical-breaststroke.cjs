@@ -1,78 +1,30 @@
 const {
   centerOfMass,
-  creature,
   distance,
-  link,
-  node,
   step,
   world,
 } = require('./physics-harness.cjs');
-
-const SHORT_ARM_LENGTH = 45;
-const LONG_ARM_LENGTH = 75;
-const NARROW_HAND_SEPARATION = 20;
-const WIDE_HAND_SEPARATION = 70;
-const PHASE_DURATION = 300;
-const CYCLE_DURATION = PHASE_DURATION * 4;
-
-const SHAPE_CORNERS = [
-  [SHORT_ARM_LENGTH, NARROW_HAND_SEPARATION],
-  [LONG_ARM_LENGTH, NARROW_HAND_SEPARATION],
-  [LONG_ARM_LENGTH, WIDE_HAND_SEPARATION],
-  [SHORT_ARM_LENGTH, WIDE_HAND_SEPARATION],
-  [SHORT_ARM_LENGTH, NARROW_HAND_SEPARATION],
-];
-
-function smoothstep(value) {
-  return value * value * (3 - 2 * value);
-}
-
-function mix(from, to, progress) {
-  return from + (to - from) * progress;
-}
+const {
+  CANONICAL_NARROW_HAND_SEPARATION,
+  CANONICAL_SHORT_ARM_LENGTH,
+  CANONICAL_STROKE_CYCLE_DURATION,
+  applyCanonicalBreaststroke,
+  createCanonicalSwimmer,
+} = require('../node_modules/.cache/biolife-tests/canonical-swimmer.js');
 
 function createCanonicalBreaststroke(options = {}) {
   const { dt = 1, reverse = false } = options;
-  const halfSeparation = NARROW_HAND_SEPARATION / 2;
-  const handX = Math.sqrt(SHORT_ARM_LENGTH ** 2 - halfSeparation ** 2);
-  const nodes = [
-    node(0, 10, 0, 0),
-    node(1, 3, handX, -halfSeparation),
-    node(2, 3, handX, halfSeparation),
-  ];
-  const upperArm = link(0, 1, SHORT_ARM_LENGTH, 1);
-  const lowerArm = link(0, 2, SHORT_ARM_LENGTH, 1);
-  const hands = link(1, 2, NARROW_HAND_SEPARATION, 1);
-  const subject = creature(nodes, [upperArm, lowerArm, hands]);
+  const subject = createCanonicalSwimmer(1);
 
   return {
     dt,
     reverse,
     subject,
     environment: world(subject),
-    upperArm,
-    lowerArm,
-    hands,
+    upperArm: subject.links[0],
+    lowerArm: subject.links[1],
+    hands: subject.links[2],
   };
-}
-
-function setStrokeShape(simulation, time) {
-  let cycleTime = ((time % CYCLE_DURATION) + CYCLE_DURATION) % CYCLE_DURATION;
-  if (simulation.reverse) {
-    cycleTime = (CYCLE_DURATION - cycleTime) % CYCLE_DURATION;
-  }
-
-  const phase = Math.min(3, Math.floor(cycleTime / PHASE_DURATION));
-  const phaseTime = cycleTime - phase * PHASE_DURATION;
-  const progress = smoothstep(phaseTime / PHASE_DURATION);
-  const from = SHAPE_CORNERS[phase];
-  const to = SHAPE_CORNERS[phase + 1];
-  const armLength = mix(from[0], to[0], progress);
-  const handSeparation = mix(from[1], to[1], progress);
-
-  simulation.upperArm.restLength = armLength;
-  simulation.lowerArm.restLength = armLength;
-  simulation.hands.restLength = handSeparation;
 }
 
 function bodyYaw(subject) {
@@ -91,17 +43,25 @@ function bodyShape(subject) {
 }
 
 function advanceStrokeCycle(simulation) {
-  const stepCount = Math.round(CYCLE_DURATION / simulation.dt);
-  if (Math.abs(stepCount * simulation.dt - CYCLE_DURATION) > 1e-9) {
+  const stepCount = Math.round(CANONICAL_STROKE_CYCLE_DURATION / simulation.dt);
+  if (Math.abs(stepCount * simulation.dt - CANONICAL_STROKE_CYCLE_DURATION) > 1e-9) {
     throw new Error('dt must divide the canonical stroke cycle exactly');
   }
 
   const before = centerOfMass(simulation.subject);
   step(simulation.subject, simulation.environment, stepCount, {
     dt: simulation.dt,
-    beforeStep: (time) => setStrokeShape(simulation, time),
+    beforeStep: (time) => applyCanonicalBreaststroke(
+      simulation.subject,
+      time,
+      simulation.reverse,
+    ),
   });
-  setStrokeShape(simulation, simulation.environment.tick * simulation.dt);
+  applyCanonicalBreaststroke(
+    simulation.subject,
+    simulation.environment.tick * simulation.dt,
+    simulation.reverse,
+  );
   const after = centerOfMass(simulation.subject);
 
   return {
@@ -118,9 +78,9 @@ function advanceStrokeCycle(simulation) {
 }
 
 module.exports = {
-  CYCLE_DURATION,
-  NARROW_HAND_SEPARATION,
-  SHORT_ARM_LENGTH,
+  CYCLE_DURATION: CANONICAL_STROKE_CYCLE_DURATION,
+  NARROW_HAND_SEPARATION: CANONICAL_NARROW_HAND_SEPARATION,
+  SHORT_ARM_LENGTH: CANONICAL_SHORT_ARM_LENGTH,
   advanceStrokeCycle,
   createCanonicalBreaststroke,
 };
