@@ -15,11 +15,10 @@
       "title": "Add visible canonical breaststroke demo",
       "description": "Goal: let a person watch the exact validated breaststroke swimmer in the browser. Context: commit 8f00cab defines the stroke only in a headless CommonJS fixture; src/main.ts still exposes the obsolete timer-driven C-key fish. Requirements: move the canonical swimmer and simulation-time stroke definition into a browser-importable src module used by both tests and UI; add an isolated, clearly documented browser demo mode with useful framing and forward-displacement feedback; preserve the existing ecosystem default. Acceptance: the browser demo uses the same implementation as test/breaststroke.test.cjs, npm test and npm run build pass, and README gives the exact demo URL/control. Out of scope: genome inheritance, ecosystem balance, new rendering art, and unrelated debug cleanup.",
       "item_type": "task",
-      "status": "open",
+      "status": "closed",
       "priority": 1,
-      "claimed_by": "Mike Daum",
       "created_at": "2026-08-15T18:42:43.022827395Z",
-      "updated_at": "2026-08-15T18:42:46.272429605Z"
+      "updated_at": "2026-08-15T18:48:01.783465916Z"
     },
     "lb-dwgb": {
       "id": "lb-dwgb",
