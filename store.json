@@ -1,5 +1,15 @@
 {
   "items": {
+    "lb-1czv": {
+      "id": "lb-1czv",
+      "title": "Publish breaststroke demo on tailnet",
+      "description": "Goal: make the built BioLife breaststroke demo reachable only from the machine's Tailscale tailnet. Context: the browser demo is available at ?demo=breaststroke and Tailscale CLI 1.98.2 is installed, but tailscaled was not running at discovery time. Requirements: preserve any existing Tailscale Serve config; build the app; serve the static dist output from localhost with a repeatable repo command; expose that local origin through Tailscale Serve rather than Funnel; verify the tailnet HTTPS URL and demo route. Acceptance: a tailnet peer can load the demo URL, the endpoint is not public internet/Funnel, and README documents start/status/stop operations. Out of scope: public hosting, Tailscale account enrollment changes without explicit need, system-wide unrelated services, and genome work.",
+      "item_type": "task",
+      "status": "open",
+      "priority": 1,
+      "created_at": "2026-08-23T19:16:13.471899108Z",
+      "updated_at": "2026-08-23T19:16:13.471899108Z"
+    },
     "lb-354f": {
       "id": "lb-354f",
       "title": "Encode and inherit evolvable locomotion gaits",
@@ -84,6 +94,11 @@
     },
     {
       "from_id": "lb-oe6z",
+      "to_id": "lb-q2d7",
+      "dep_type": "parent"
+    },
+    {
+      "from_id": "lb-1czv",
       "to_id": "lb-q2d7",
       "dep_type": "parent"
     }
