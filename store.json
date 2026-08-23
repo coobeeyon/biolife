@@ -101,6 +101,11 @@
       "from_id": "lb-1czv",
       "to_id": "lb-q2d7",
       "dep_type": "parent"
+    },
+    {
+      "from_id": "lb-cxhk",
+      "to_id": "lb-1czv",
+      "dep_type": "blocks"
     }
   ]
 }
