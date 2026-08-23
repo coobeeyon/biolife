@@ -7,8 +7,9 @@
       "item_type": "task",
       "status": "open",
       "priority": 1,
+      "claimed_by": "Mike Daum",
       "created_at": "2026-08-23T19:16:13.471899108Z",
-      "updated_at": "2026-08-23T19:16:13.471899108Z"
+      "updated_at": "2026-08-23T19:16:18.000408968Z"
     },
     "lb-354f": {
       "id": "lb-354f",
