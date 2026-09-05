@@ -74,16 +74,15 @@ export function createCreature(
           const dy = nodeB.y - nodeA.y;
           const restLength = Math.sqrt(dx * dx + dy * dy);
 
-          // Only ~20% of links have actuation
-          const hasActuation = Math.random() < 0.2;
+          const gait = gene.linkGaits?.[String(relLink)];
           links.push({
             nodeA: i,
             nodeB: targetIdx,
             restLength,
             stiffness: 2.0,
-            actuationAmp: hasActuation ? 0.2 + Math.random() * 0.3 : 0,
-            actuationFreq: hasActuation ? 1.0 + Math.random() * 2 : 0,
-            actuationPhase: hasActuation ? Math.random() * Math.PI * 2 : 0,
+            actuationAmp: gait?.amplitude ?? 0,
+            actuationFreq: gait?.frequency ?? 0,
+            actuationPhase: gait?.phase ?? 0,
           });
         }
       }

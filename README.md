@@ -40,7 +40,8 @@ Creatures swim using anisotropic drag physics - links act as paddles that push h
 - **Toroidal world** - edges wrap around
 - **Asexual reproduction** - creatures divide when energy exceeds threshold (150)
 - **Sexual reproduction** - mating nodes trigger crossover between genomes
-- **Mutation** - offspring have mutated genomes
+- **Heritable swimming gaits** - link actuation passes through reproduction
+- **Mutation** - offspring have bounded mutations to body and gait genes
 - **Energy economy** - different node types have different maintenance costs
 
 ## Project Structure

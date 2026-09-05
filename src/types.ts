@@ -6,11 +6,20 @@ export enum SegmentType {
   Mating = 'mating',     // Triggers reproduction on contact
 }
 
+// Heritable actuation parameters for one relative link. A missing gait keeps
+// the link passive.
+export interface GaitGene {
+  amplitude: number;                 // Fraction of the link's rest length
+  frequency: number;                 // Oscillation frequency
+  phase: number;                     // Phase offset in radians
+}
+
 // Gene for a single node
 export interface NodeGene {
   type: SegmentType;
   size: number;                    // Radius of node
   links: number[];                 // Relative links (e.g., +1, -2)
+  linkGaits?: Record<string, GaitGene>; // Gaits keyed by relative link
   efficiency?: number;             // For sucker nodes - how efficiently they drain
 }
 
