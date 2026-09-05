@@ -64,9 +64,19 @@
   },
   "deps": [
     {
+      "from_id": "lb-1czv",
+      "to_id": "lb-q2d7",
+      "dep_type": "parent"
+    },
+    {
       "from_id": "lb-354f",
       "to_id": "lb-q2d7",
       "dep_type": "parent"
+    },
+    {
+      "from_id": "lb-cxhk",
+      "to_id": "lb-1czv",
+      "dep_type": "blocks"
     },
     {
       "from_id": "lb-cxhk",
@@ -97,16 +107,6 @@
       "from_id": "lb-oe6z",
       "to_id": "lb-q2d7",
       "dep_type": "parent"
-    },
-    {
-      "from_id": "lb-1czv",
-      "to_id": "lb-q2d7",
-      "dep_type": "parent"
-    },
-    {
-      "from_id": "lb-cxhk",
-      "to_id": "lb-1czv",
-      "dep_type": "blocks"
     }
   ]
 }
