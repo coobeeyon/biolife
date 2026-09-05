@@ -1,10 +1,22 @@
 import { createWorld, initializeWorld, step } from './simulation';
 import { CollisionSystem } from './collision';
 import { Renderer } from './renderer';
+import { getCreatureCenter } from './creature';
+import { Creature } from './types';
+import {
+  CANONICAL_STROKE_PHASES,
+  applyCanonicalBreaststroke,
+  createCanonicalSwimmer,
+  getCanonicalStrokePhase,
+} from './canonical-swimmer';
 
 // World configuration
 const WORLD_WIDTH = 2400;
 const WORLD_HEIGHT = 1800;
+const searchParams = new URLSearchParams(window.location.search);
+const breaststrokeDemo = searchParams.get('demo') === 'breaststroke';
+const reverseDemo = searchParams.get('reverse') === '1';
+const demoPlaybackRate = breaststrokeDemo ? 4 : 1;
 
 // Create world
 const world = createWorld({
@@ -12,11 +24,11 @@ const world = createWorld({
   height: WORLD_HEIGHT,
   viscosity: 0.08,
   insolation: 0.0015,  // Half of 0.005
-  foodSpawnRate: 0.02,  // Was 0.15 - reduced to ~1 food per second at 60fps
+  foodSpawnRate: breaststrokeDemo ? 0 : 0.02,  // Keep the isolated demo clear
   foodEnergy: 15,       // Was 25
   matingEnergyCost: 80,
-  matingEnergyThreshold: 70,
-  divisionEnergyThreshold: 150,
+  matingEnergyThreshold: breaststrokeDemo ? Number.POSITIVE_INFINITY : 70,
+  divisionEnergyThreshold: breaststrokeDemo ? Number.POSITIVE_INFINITY : 150,
   mutationRate: 0.12,
   mutationStrength: 0.25,
 });
@@ -25,8 +37,18 @@ const world = createWorld({
 const collisionSystem = new CollisionSystem();
 const renderer = new Renderer(WORLD_WIDTH, WORLD_HEIGHT);
 
-// Initialize world with creatures and food
-initializeWorld(world, 15, 80);
+let demoSwimmer: Creature | null = null;
+let demoStartX = 0;
+
+if (breaststrokeDemo) {
+  demoSwimmer = createCanonicalSwimmer(world.nextCreatureId++);
+  world.creatures.push(demoSwimmer);
+  demoStartX = getCreatureCenter(demoSwimmer).x;
+  renderer.setZoom(4);
+} else {
+  // Initialize the evolving ecosystem normally.
+  initializeWorld(world, 15, 80);
+}
 
 // Info display
 const infoElement = document.getElementById('info')!;
@@ -42,8 +64,13 @@ function gameLoop(currentTime: number): void {
 
     // Run simulation steps to catch up
     if (elapsed >= targetDt) {
-      const steps = Math.min(Math.floor(elapsed / targetDt), 3); // Cap at 3 steps to prevent spiral
+      // Demo playback runs more fixed physics steps per rendered frame; the
+      // validated dt and stroke timing remain unchanged.
+      const steps = Math.min(Math.floor(elapsed / targetDt), 3) * demoPlaybackRate;
       for (let i = 0; i < steps; i++) {
+        if (demoSwimmer?.alive) {
+          applyCanonicalBreaststroke(demoSwimmer, world.tick, reverseDemo);
+        }
         step(world, collisionSystem, 1);
       }
       lastTime = currentTime - (elapsed % targetDt);
@@ -54,7 +81,20 @@ function gameLoop(currentTime: number): void {
     renderer.render();
 
     // Update info display
-    infoElement.textContent = renderer.getStats(world);
+    let info = renderer.getStats(world);
+    if (demoSwimmer?.alive) {
+      const center = getCreatureCenter(demoSwimmer);
+      const phase = getCanonicalStrokePhase(world.tick, reverseDemo);
+      info += [
+        '',
+        `Demo: ${reverseDemo ? 'reverse ' : ''}breaststroke`,
+        `Playback: ${demoPlaybackRate}x`,
+        `Phase: ${CANONICAL_STROKE_PHASES[phase]}`,
+        `Forward distance: ${(center.x - demoStartX).toFixed(2)}`,
+        'Space: pause/resume',
+      ].join('\n');
+    }
+    infoElement.textContent = info;
   }
 
   requestAnimationFrame(gameLoop);

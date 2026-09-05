@@ -187,6 +187,11 @@ export class Renderer {
     this.renderer.render(this.scene, this.camera);
   }
 
+  setZoom(zoom: number): void {
+    this.camera.zoom = zoom;
+    this.camera.updateProjectionMatrix();
+  }
+
   // Get stats for info display
   getStats(world: World): string {
     const aliveCreatures = world.creatures.filter(c => c.alive).length;

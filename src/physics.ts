@@ -12,8 +12,7 @@ function applyNodeDrag(node: Node, viscosity: number): void {
 // Apply viscous drag to a link (line segment) as a rigid paddle
 // The link is a RIGID BODY with both translation and rotation
 // Anisotropic: perpendicular motion has high drag, parallel motion has low drag
-let dragDebugCounter = 0;
-function applyLinkDrag(nodeA: Node, nodeB: Node, link: Link, viscosity: number, width: number, height: number, creatureId?: number): void {
+function applyLinkDrag(nodeA: Node, nodeB: Node, viscosity: number, width: number, height: number): void {
   // Use toroidal distance
   const { dx, dy } = toroidalDelta(nodeA.x, nodeA.y, nodeB.x, nodeB.y, width, height);
   const length = Math.sqrt(dx * dx + dy * dy) || 0.001;
@@ -61,7 +60,10 @@ function applyLinkDrag(nodeA: Node, nodeB: Node, link: Link, viscosity: number, 
   // Convert torque to forces at endpoints (force = torque / (length/2))
   // Force at A is perpendicular, in direction to oppose rotation
   // Force at B is opposite
-  const rotForceMag = rotDragTorque / (length / 2);
+  // With force A = f*p and force B = -f*p, the resulting torque is
+  // -length*f. Negate here so the endpoint forces reproduce rotDragTorque
+  // instead of reversing it and amplifying rotation.
+  const rotForceMag = -rotDragTorque / (length / 2);
   const rotDragFxA = px * rotForceMag * 0.5;
   const rotDragFyA = py * rotForceMag * 0.5;
   const rotDragFxB = -px * rotForceMag * 0.5;
@@ -83,12 +85,6 @@ function applyLinkDrag(nodeA: Node, nodeB: Node, link: Link, viscosity: number, 
   nodeB.vx += rotDragFxB / massB;
   nodeB.vy += rotDragFyB / massB;
 
-  // Debug: only log for creature ID 99
-  if (creatureId === 99 && dragDebugCounter++ % 60 === 0) {
-    if (Math.abs(omega) > 0.001 || Math.abs(vPerp) > 0.01) {
-      console.log(`Link ${link.nodeA}-${link.nodeB}: vPerp=${vPerp.toFixed(3)} omega=${omega.toFixed(4)} transDrag=(${transDragFx.toFixed(3)},${transDragFy.toFixed(3)})`);
-    }
-  }
 }
 
 // Calculate actuation energy cost for a creature
@@ -240,7 +236,6 @@ function applyToroidalWrap(creature: Creature, width: number, height: number): v
 }
 
 // Main physics step for a single creature
-let physicsDebugCounter = 0;
 export function updateCreaturePhysics(
   creature: Creature,
   world: World,
@@ -256,28 +251,13 @@ export function updateCreaturePhysics(
     const nodeA = creature.nodes[link.nodeA];
     const nodeB = creature.nodes[link.nodeB];
     if (nodeA && nodeB) {
-      applyLinkDrag(nodeA, nodeB, link, world.config.viscosity, world.config.width, world.config.height, creature.id);
+      applyLinkDrag(nodeA, nodeB, world.config.viscosity, world.config.width, world.config.height);
     }
   }
 
   // Apply drag to nodes (isotropic)
   for (const node of creature.nodes) {
     applyNodeDrag(node, world.config.viscosity);
-  }
-
-  // Debug: log creature center of mass velocity for test triangle
-  if (creature.nodes.length === 3 && physicsDebugCounter++ % 120 === 0) {
-    let totalMass = 0;
-    let comVx = 0, comVy = 0;
-    for (const node of creature.nodes) {
-      const mass = node.gene.size * node.gene.size;
-      totalMass += mass;
-      comVx += node.vx * mass;
-      comVy += node.vy * mass;
-    }
-    comVx /= totalMass;
-    comVy /= totalMass;
-    console.log(`COM velocity: (${comVx.toFixed(4)}, ${comVy.toFixed(4)})`);
   }
 
   integrate(creature, dt);

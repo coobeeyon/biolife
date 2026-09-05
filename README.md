@@ -11,6 +11,16 @@ npm run dev
 
 Open http://localhost:5173 in your browser.
 
+To watch the validated swimmer by itself, open:
+
+```text
+http://localhost:5173/?demo=breaststroke
+```
+
+The view is zoomed in, plays the validated fixed-step simulation at 4x wall
+clock speed, and reports the current stroke phase and forward distance. Add
+`&reverse=1` to run the same shape loop backward.
+
 ## Overview
 
 Creatures are built from:
@@ -30,7 +40,8 @@ Creatures swim using anisotropic drag physics - links act as paddles that push h
 - **Toroidal world** - edges wrap around
 - **Asexual reproduction** - creatures divide when energy exceeds threshold (150)
 - **Sexual reproduction** - mating nodes trigger crossover between genomes
-- **Mutation** - offspring have mutated genomes
+- **Heritable swimming gaits** - link actuation passes through reproduction
+- **Mutation** - offspring have bounded mutations to body and gait genes
 - **Energy economy** - different node types have different maintenance costs
 
 ## Project Structure
@@ -61,3 +72,14 @@ Key parameters in `main.ts`:
 npm run build
 npm run preview
 ```
+
+## Physics Tests
+
+```bash
+npm test
+```
+
+The headless physics suite includes passive rotational damping, symmetry,
+and reciprocal-stroke controls, plus a deterministic breaststroke swimmer
+that checks directed travel, shape closure, reversed strokes, bounded drift,
+and timestep convergence. It does not require WebGL or a browser.
