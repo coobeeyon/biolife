@@ -64,12 +64,12 @@
     "lb-zoh7": {
       "id": "lb-zoh7",
       "title": "Review and merge the heritable-gaits pull request",
-      "description": "Goal: Put the validated locomotion and inherited gait work into BioLife master. Context: PR 1 is green and mergeable and combines the prerequisite physics corrections with lb-354f. Requirements: independently review the exact PR for physical claim accuracy, deterministic controls, and genome compatibility; correct any findings; obtain Mike's merge approval; merge and verify master. Acceptance: origin/master contains the reviewed behavior and all deterministic tests plus the production build pass there. Out of scope: deployment, new evolution features, or stronger scientific claims.",
+      "description": "Goal: Put the validated locomotion and inherited gait work into BioLife master. Context: PR 1 is green and mergeable and combines the prerequisite physics corrections with lb-354f. Requirements: independently review the exact PR for physical claim accuracy, deterministic controls, and genome compatibility; correct any findings; merge under Mike's standing personal-project authority; verify master. Acceptance: origin/master contains the reviewed behavior and all deterministic tests plus the production build pass there. Out of scope: new evolution features, stronger scientific claims, purchases, or unrelated external actions.",
       "item_type": "task",
       "status": "open",
       "priority": 1,
       "created_at": "2026-09-06T11:38:52.003607404Z",
-      "updated_at": "2026-09-06T11:38:52.003607404Z"
+      "updated_at": "2026-09-06T12:39:29.816506636Z"
     }
   },
   "deps": [
