@@ -61,6 +61,16 @@
       "created_at": "2026-08-14T16:53:51.161082927Z",
       "updated_at": "2026-08-14T16:53:51.161082927Z"
     },
+    "lb-u6cm": {
+      "id": "lb-u6cm",
+      "title": "Independently review the preserved BioLife time-step correction",
+      "description": "Review the exact preserved biolife-delivery-review source after the prior worker was stopped. Recover defining locomotion constraints; independently verify elapsed-time physics, inherited gaits, canonical demonstration, and truthful model claims. Preserve and hash the original dirty draft; use an isolated snapshot. Report findings and proof without modifying the source candidate, merging, publishing, or assuming scientific validity beyond the stated toy model. Existing lb-zoh7 retains source delivery and merge disposition.",
+      "item_type": "task",
+      "status": "open",
+      "priority": 1,
+      "created_at": "2026-09-18T01:39:20.574624774Z",
+      "updated_at": "2026-09-18T01:39:20.574624774Z"
+    },
     "lb-zoh7": {
       "id": "lb-zoh7",
       "title": "Review and merge the heritable-gaits pull request",
